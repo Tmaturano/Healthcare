@@ -1,7 +1,7 @@
 <Solution>
   <Folder Name="/.github/" />
   <Folder Name="/.github/workflows/">
-    <File Path="dotnet.yml" />
+    <File Path=".github/workflows/dotnet.yml" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Healthcare.API/Healthcare.API.csproj" Id="aad0fc40-e91a-4bf5-ab11-9fc4f8eea9be" />
