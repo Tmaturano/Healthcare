@@ -2,7 +2,7 @@ name: .NET 10 CI
 
 on:
   push:
-    branches: [ "main"]
+    branches: [ "main" ]
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -39,8 +39,16 @@ jobs:
     - name: Build solution
       run: dotnet build --configuration Release --no-restore
 
-    - name: Run unit tests
-      run: dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory "./TestResults"
+    - name: Run unit tests with coverage
+      run: >
+        dotnet test 
+        --configuration Release 
+        --no-build 
+        --logger "trx;LogFileName=test-results.trx" 
+        --results-directory "./TestResults"
+        /p:CollectCoverage=true 
+        /p:CoverletOutputFormat=opencover 
+        /p:CoverletOutput=./TestResults/coverage/
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
