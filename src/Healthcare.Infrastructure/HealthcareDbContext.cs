@@ -14,6 +14,9 @@ public class HealthcareDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UsageEvent>()
+            .HasKey(e => e.Id);
+
+        modelBuilder.Entity<UsageEvent>()
             .HasIndex(e => e.ExternalEventId)
             .IsUnique();
     }

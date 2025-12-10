@@ -4,6 +4,7 @@ using Healthcare.Domain.Entities;
 using Healthcare.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace Healthcare.Application.Services;
 
@@ -24,8 +25,19 @@ public class UsageEventService : IUsageEventService
 
         foreach (var e in request.Events)
         {
-            var exists = await _db.UsageEvents
-                .AnyAsync(x => x.ExternalEventId == e.ExternalEventId);
+            //var existsInLocal = _db.UsageEvents.Local
+            //    .Any(e => e.ExternalEventId == e.ExternalEventId);
+
+            //var existsInDb = await _db.UsageEvents
+            //    .AnyAsync(e => e.ExternalEventId == e.ExternalEventId);
+            var existsInLocal = _db.UsageEvents.Local
+                .Any(existing => existing.ExternalEventId == e.ExternalEventId);
+
+            var existsInDb = await _db.UsageEvents
+                .AnyAsync(existing => existing.ExternalEventId == e.ExternalEventId);
+
+
+            var exists = existsInLocal || existsInDb;
 
             if (exists)
                 continue; // idempotent skip
@@ -57,7 +69,14 @@ public class UsageEventService : IUsageEventService
 
     private async Task<double> CalculateAdherenceScore(Guid patientId)
     {
-        //TODO: Implement a real adherence calculation based on business rules
-        return 0;
+        var today = DateTime.UtcNow.Date;
+
+        var eventsToday = await _db.UsageEvents
+            .Where(e => e.PatientId == patientId && e.Timestamp.Date == today)
+            .CountAsync();
+
+        const int required = 4;
+
+        return (double)eventsToday / required * 100;
     }
 }

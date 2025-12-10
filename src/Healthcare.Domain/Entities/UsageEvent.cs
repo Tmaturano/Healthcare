@@ -2,7 +2,7 @@
 
 public class UsageEvent
 {
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; private set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }
     public required string DeviceId { get; set; }
     public DateTime Timestamp { get; set; }
