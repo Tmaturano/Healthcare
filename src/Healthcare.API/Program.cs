@@ -12,6 +12,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "Healthcare API v1");
+        options.RoutePrefix = "swagger"; // Set Swagger UI at /swagger
+    });
 }
 
 app.UseHttpsRedirection();
