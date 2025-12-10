@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Healthcare.API/Healthcare.API.csproj" Id="aad0fc40-e91a-4bf5-ab11-9fc4f8eea9be" />
+    <Project Path="src/Healthcare.Application/Healthcare.Application.csproj" Id="3807c769-ffb3-41dd-b91c-9981b2fdd1c1" />
+    <Project Path="src/Healthcare.Domain/Healthcare.Domain.csproj" Id="7e3b14bd-7404-4496-aab9-848c9bf6a8c7" />
+    <Project Path="src/Healthcare.Infrastructure/Healthcare.Infrastructure.csproj" Id="aae8d1bb-f64e-410e-836e-1463ac1834eb" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Healthcare.Application.UnitTests/Healthcare.Application.UnitTests.csproj" Id="61cd8e94-aa4a-4530-90d3-76a7185353cd" />
+  </Folder>
+</Solution>
