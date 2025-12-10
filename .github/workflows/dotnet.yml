@@ -2,12 +2,12 @@ name: .NET 10 CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths-ignore:
       - '**.md'
       - 'docs/**'
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -39,18 +39,18 @@ jobs:
     - name: Build solution
       run: dotnet build --configuration Release --no-restore
 
-    - name: Run unit tests with coverage
-      run: >
-        dotnet test 
-        --configuration Release 
-        --no-build 
-        --logger "trx;LogFileName=test-results.trx" 
-        --results-directory "./TestResults"
-        /p:CollectCoverage=true 
-        /p:CoverletOutputFormat=opencover 
-        /p:CoverletOutput=./TestResults/coverage/
+    - name: Run tests with coverage (OpenCover format)
+      run: |
+        dotnet test \
+          --configuration Release \
+          --no-build \
+          --logger "trx;LogFileName=test-results.trx" \
+          --results-directory "./TestResults" \
+          /p:CollectCoverage=true \
+          /p:CoverletOutput=./TestResults/coverage.opencover.xml \
+          /p:CoverletOutputFormat=opencover
 
-    - name: Upload test results
+    - name: Upload test results (TRX)
       uses: actions/upload-artifact@v4
       if: always()
       with:
@@ -58,10 +58,10 @@ jobs:
         path: TestResults/**/*.trx
         retention-days: 30
 
-    - name: Upload code coverage
+    - name: Upload code coverage (OpenCover)
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: code-coverage-${{ github.run_number }}
-        path: TestResults/**/coverage.opencover.xml
+        path: TestResults/coverage.opencover.xml
         retention-days: 30
