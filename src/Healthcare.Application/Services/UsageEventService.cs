@@ -53,7 +53,7 @@ public class UsageEventService : IUsageEventService
         await _db.SaveChangesAsync();
 
         // Recalculate adherence
-        var score = await CalculateAdherenceScore(request.Events.First().PatientId);
+        var score = await CalculateDailyAdherenceScore(request.Events.First().PatientId);
 
         return new BatchEventsResponse(
             TotalProcessed: processedIds.Count,
@@ -62,7 +62,12 @@ public class UsageEventService : IUsageEventService
         );
     }
 
-    private async Task<double> CalculateAdherenceScore(Guid patientId)
+    /// <summary>
+    /// Daily Adherence Score Calculation
+    /// </summary>
+    /// <param name="patientId"></param>
+    /// <returns>How well did the patient adhere Today to the expected usage schedule</returns>
+    private async Task<double> CalculateDailyAdherenceScore(Guid patientId)
     {
         var today = DateTime.UtcNow.Date;
 
@@ -70,8 +75,8 @@ public class UsageEventService : IUsageEventService
             .Where(e => e.PatientId == patientId && e.Timestamp.Date == today)
             .CountAsync();
 
-        const int required = 4;
+        const int requiredDailyPuffs = 4; // 2 puffs × 2 times per day
 
-        return (double)eventsToday / required * 100;
+        return (double)eventsToday / requiredDailyPuffs * 100;
     }
 }
