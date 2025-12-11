@@ -25,11 +25,6 @@ public class UsageEventService : IUsageEventService
 
         foreach (var e in request.Events)
         {
-            //var existsInLocal = _db.UsageEvents.Local
-            //    .Any(e => e.ExternalEventId == e.ExternalEventId);
-
-            //var existsInDb = await _db.UsageEvents
-            //    .AnyAsync(e => e.ExternalEventId == e.ExternalEventId);
             var existsInLocal = _db.UsageEvents.Local
                 .Any(existing => existing.ExternalEventId == e.ExternalEventId);
 
