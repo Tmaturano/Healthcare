@@ -10,6 +10,7 @@ public class HealthcareDbContext : DbContext
 
     public DbSet<Patient> Patients { get; set; }
     public DbSet<UsageEvent> UsageEvents { get; set; }
+    public DbSet<BatchJob> BatchJobs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,5 +20,11 @@ public class HealthcareDbContext : DbContext
         modelBuilder.Entity<UsageEvent>()
             .HasIndex(e => e.ExternalEventId)
             .IsUnique();
+
+        modelBuilder.Entity<BatchJob>()
+            .HasKey(e => e.Id);
+
+        modelBuilder.Entity<BatchJob>()
+            .HasIndex(e => e.Status);
     }
 }

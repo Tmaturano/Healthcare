@@ -10,6 +10,8 @@ public static class DependencyInjection
     {
         // Register application services here
         services.AddScoped<IUsageEventService, UsageEventService>();
+        services.AddScoped<IBackgroundJobService, BackgroundJobService>();
+        services.AddHostedService<BackgroundJobProcessor>();
         return services;
     }
 }
