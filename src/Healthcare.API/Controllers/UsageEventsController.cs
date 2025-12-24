@@ -9,19 +9,22 @@ namespace Healthcare.API.Controllers;
 [ApiController]
 public class UsageEventsController : ControllerBase
 {
-    private readonly IUsageEventService _service;
+    private readonly IBackgroundJobService _backgroundJobService;
+    private readonly IUsageEventService _usageEventService;
     private readonly IValidator<BatchEventsRequest> _validator;
 
     public UsageEventsController(
-        IUsageEventService service, 
+        IBackgroundJobService backgroundJobService,
+        IUsageEventService usageEventService,
         IValidator<BatchEventsRequest> validator)
     {
-        _service = service;
+        _backgroundJobService = backgroundJobService;
+        _usageEventService = usageEventService;
         _validator = validator;
     }
 
     [HttpPost("batch")]
-    public async Task<ActionResult<BatchEventsResponse>> PostBatch(
+    public async Task<ActionResult<BatchJobQueuedResponse>> PostBatch(
         [FromBody] BatchEventsRequest request)
     {
         var validation = await _validator.ValidateAsync(request);
@@ -30,7 +33,46 @@ public class UsageEventsController : ControllerBase
             return BadRequest(validation.Errors.Select(e => e.ErrorMessage));
         }
 
-        var result = await _service.ProcessBatchAsync(request);
-        return Ok(result);
+        var jobId = await _backgroundJobService.QueueBatchAsync(request);
+        
+        return Accepted(new BatchJobQueuedResponse(
+            JobId: jobId,
+            Message: "Batch has been queued for processing",
+            EventCount: request.Events.Count()
+        ));
+    }
+
+    [HttpGet("batch/{jobId}")]
+    public async Task<ActionResult<BatchJobStatusResponse>> GetBatchStatus(Guid jobId)
+    {
+        var status = await _backgroundJobService.GetJobStatusAsync(jobId);
+
+        if (status == null)
+        {
+            return NotFound(new { Message = $"Job {jobId} not found" });
+        }
+
+        return Ok(status);
+    }
+
+    [HttpGet("adherence/{patientId}")]
+    public async Task<ActionResult<AdherenceScoreResponse>> GetDailyAdherenceScore(Guid patientId)
+    {
+        var score = await _usageEventService.GetDailyAdherenceScoreAsync(patientId);
+
+        var description = score switch
+        {
+            >= 100 => "Excellent adherence",
+            >= 75 => "Good adherence",
+            >= 50 => "Fair adherence",
+            _ => "Poor adherence"
+        };
+
+        return Ok(new AdherenceScoreResponse(
+            PatientId: patientId,
+            Score: score,
+            CalculatedAt: DateTime.UtcNow,
+            Description: description
+        ));
     }
 }
