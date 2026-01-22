@@ -113,4 +113,178 @@ public class UsageEventServiceTests
         response.ProcessedEventIds.Should().Contain("evt-10");
         response.UpdatedAdherenceScore.Should().BeGreaterThan(0);
     }
+
+    [Fact]
+    public async Task GetDailyAdherenceScoreAsync_ShouldReturnZero_WhenNoEventsExist()
+    {
+        // Arrange
+        var db = TestDbContextFactory.Create();
+        var service = CreateService(db);
+        var patientId = Guid.NewGuid();
+
+        // Act
+        var score = await service.GetDailyAdherenceScoreAsync(patientId);
+
+        // Assert
+        score.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetDailyAdherenceScoreAsync_ShouldReturnCorrectScore_WithPartialAdherence()
+    {
+        // Arrange
+        var db = TestDbContextFactory.Create();
+        var service = CreateService(db);
+        var patientId = Guid.NewGuid();
+
+        // Add 2 events for today (50% adherence)
+        db.UsageEvents.Add(new UsageEvent
+        {
+            ExternalEventId = "evt-1",
+            Timestamp = DateTime.UtcNow,
+            DeviceId = "dev",
+            PatientId = patientId,
+            EventType = "puff"
+        });
+
+        db.UsageEvents.Add(new UsageEvent
+        {
+            ExternalEventId = "evt-2",
+            Timestamp = DateTime.UtcNow,
+            DeviceId = "dev",
+            PatientId = patientId,
+            EventType = "puff"
+        });
+
+        await db.SaveChangesAsync();
+
+        // Act
+        var score = await service.GetDailyAdherenceScoreAsync(patientId);
+
+        // Assert
+        score.Should().Be(50);
+    }
+
+    [Fact]
+    public async Task GetDailyAdherenceScoreAsync_ShouldReturnFullAdherence_WhenAllEventsExist()
+    {
+        // Arrange
+        var db = TestDbContextFactory.Create();
+        var service = CreateService(db);
+        var patientId = Guid.NewGuid();
+
+        // Add 4 events for today (100% adherence)
+        for (int i = 1; i <= 4; i++)
+        {
+            db.UsageEvents.Add(new UsageEvent
+            {
+                ExternalEventId = $"evt-{i}",
+                Timestamp = DateTime.UtcNow,
+                DeviceId = "dev",
+                PatientId = patientId,
+                EventType = "puff"
+            });
+        }
+
+        await db.SaveChangesAsync();
+
+        // Act
+        var score = await service.GetDailyAdherenceScoreAsync(patientId);
+
+        // Assert
+        score.Should().Be(100);
+    }
+
+    [Fact]
+    public async Task GetDailyAdherenceScoreAsync_ShouldOnlyCountTodaysEvents()
+    {
+        // Arrange
+        var db = TestDbContextFactory.Create();
+        var service = CreateService(db);
+        var patientId = Guid.NewGuid();
+
+        // Add event from yesterday
+        db.UsageEvents.Add(new UsageEvent
+        {
+            ExternalEventId = "evt-yesterday",
+            Timestamp = DateTime.UtcNow.AddDays(-1),
+            DeviceId = "dev",
+            PatientId = patientId,
+            EventType = "puff"
+        });
+
+        // Add 2 events for today
+        db.UsageEvents.Add(new UsageEvent
+        {
+            ExternalEventId = "evt-1",
+            Timestamp = DateTime.UtcNow,
+            DeviceId = "dev",
+            PatientId = patientId,
+            EventType = "puff"
+        });
+
+        db.UsageEvents.Add(new UsageEvent
+        {
+            ExternalEventId = "evt-2",
+            Timestamp = DateTime.UtcNow,
+            DeviceId = "dev",
+            PatientId = patientId,
+            EventType = "puff"
+        });
+
+        await db.SaveChangesAsync();
+
+        // Act
+        var score = await service.GetDailyAdherenceScoreAsync(patientId);
+
+        // Assert
+        score.Should().Be(50); // Only 2 out of 4 required today
+    }
+
+    [Fact]
+    public async Task GetDailyAdherenceScoreAsync_ShouldOnlyCountEventsForSpecificPatient()
+    {
+        // Arrange
+        var db = TestDbContextFactory.Create();
+        var service = CreateService(db);
+        var patientId = Guid.NewGuid();
+        var otherPatientId = Guid.NewGuid();
+
+        // Add event for other patient
+        db.UsageEvents.Add(new UsageEvent
+        {
+            ExternalEventId = "evt-other",
+            Timestamp = DateTime.UtcNow,
+            DeviceId = "dev",
+            PatientId = otherPatientId,
+            EventType = "puff"
+        });
+
+        // Add 2 events for target patient
+        db.UsageEvents.Add(new UsageEvent
+        {
+            ExternalEventId = "evt-1",
+            Timestamp = DateTime.UtcNow,
+            DeviceId = "dev",
+            PatientId = patientId,
+            EventType = "puff"
+        });
+
+        db.UsageEvents.Add(new UsageEvent
+        {
+            ExternalEventId = "evt-2",
+            Timestamp = DateTime.UtcNow,
+            DeviceId = "dev",
+            PatientId = patientId,
+            EventType = "puff"
+        });
+
+        await db.SaveChangesAsync();
+
+        // Act
+        var score = await service.GetDailyAdherenceScoreAsync(patientId);
+
+        // Assert
+        score.Should().Be(50); // Only 2 out of 4 required for this patient
+    }
 }

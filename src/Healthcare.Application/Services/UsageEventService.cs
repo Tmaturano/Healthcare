@@ -53,7 +53,7 @@ public class UsageEventService : IUsageEventService
         await _db.SaveChangesAsync();
 
         // Recalculate adherence
-        var score = await CalculateDailyAdherenceScore(request.Events.First().PatientId);
+        var score = await GetDailyAdherenceScoreAsync(request.Events.First().PatientId);
 
         return new BatchEventsResponse(
             TotalProcessed: processedIds.Count,
@@ -67,7 +67,7 @@ public class UsageEventService : IUsageEventService
     /// </summary>
     /// <param name="patientId"></param>
     /// <returns>How well did the patient adhere Today to the expected usage schedule</returns>
-    private async Task<double> CalculateDailyAdherenceScore(Guid patientId)
+    public async Task<double> GetDailyAdherenceScoreAsync(Guid patientId)
     {
         var today = DateTime.UtcNow.Date;
 
