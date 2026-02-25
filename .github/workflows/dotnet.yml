@@ -16,6 +16,11 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    # Add permissions for this specific job
+    permissions:
+      pull-requests: write  # This allows creating/updating comments on PRs
+      contents: read        # This is likely already the default
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4

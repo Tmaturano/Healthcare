@@ -5,5 +5,6 @@ namespace Healthcare.Application.Interfaces;
 public interface IUsageEventService
 {
     Task<BatchEventsResponse> ProcessBatchAsync(BatchEventsRequest request);
+    Task<double> GetDailyAdherenceScoreAsync(Guid patientId);
 }
 
